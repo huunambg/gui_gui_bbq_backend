@@ -8,7 +8,7 @@ const addOrder = function (req, res) {
         if (err) {
             res.status(401).send({ message: "Add Order failure" })
         } else {
-            res.send({ message: "Add Order success", data: data })
+            res.send({ message: "Add Order success", data: data, insert_id: result.insertId })
         }
     })
 }

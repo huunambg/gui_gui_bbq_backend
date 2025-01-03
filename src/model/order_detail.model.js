@@ -7,6 +7,9 @@ const OrderDetailModel = function () {
 OrderDetailModel.insert = function (data, result) {
     let sql = "INSERT INTO order_detail SET ?"
     db.query(sql, data, function (err, res) {
+        if (err) {
+            console.log(err);
+        }
         result(err, res)
     })
 }

@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th12 30, 2024 lúc 02:07 AM
--- Phiên bản máy phục vụ: 10.4.32-MariaDB
--- Phiên bản PHP: 8.2.12
+-- Máy chủ: localhost
+-- Thời gian đã tạo: Th1 03, 2025 lúc 11:34 AM
+-- Phiên bản máy phục vụ: 10.4.28-MariaDB
+-- Phiên bản PHP: 8.1.17
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -39,7 +39,9 @@ CREATE TABLE `buffer` (
 
 INSERT INTO `buffer` (`buffer_id`, `buffer_type`, `price_per_person`) VALUES
 (1, 'Buffer Lẩu', 149000),
-(2, 'Buffer Nướng', 149000);
+(2, 'Buffer Nướng', 149000),
+(4, 'Buffer Nướng VIP', 149000),
+(5, 'Buffer Nướng + Lẩu', 159000);
 
 -- --------------------------------------------------------
 
@@ -50,10 +52,10 @@ INSERT INTO `buffer` (`buffer_id`, `buffer_type`, `price_per_person`) VALUES
 CREATE TABLE `menu` (
   `menu_id` int(11) NOT NULL,
   `item_name` varchar(100) NOT NULL,
-  `price` decimal(10,2) NOT NULL,
+  `price` decimal(10,0) NOT NULL,
   `category` varchar(50) DEFAULT NULL,
   `is_available` tinyint(1) DEFAULT 1,
-  `image` text NOT NULL
+  `image` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -61,8 +63,11 @@ CREATE TABLE `menu` (
 --
 
 INSERT INTO `menu` (`menu_id`, `item_name`, `price`, `category`, `is_available`, `image`) VALUES
-(1, 'Rượu vang đỏ', 40000.00, 'Rượu', 1, ''),
-(2, 'Nước Lavie', 10000.00, 'Nước', 1, '');
+(1, 'Rượu vang đỏ', 40000, 'Rượu', 1, ''),
+(2, 'Nước Lavie', 10000, 'Nước', 1, ''),
+(3, 'Buffer Nước', 20000, 'Nước', 1, NULL),
+(4, 'Pepsi', 10000, 'Nước', 1, NULL),
+(5, 'Pepsi', 10000, 'Nước', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -72,7 +77,6 @@ INSERT INTO `menu` (`menu_id`, `item_name`, `price`, `category`, `is_available`,
 
 CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
-  `table_id` int(11) NOT NULL,
   `order_date` datetime DEFAULT current_timestamp(),
   `total_amount` decimal(10,0) DEFAULT 0,
   `status` enum('Pending','Completed','Cancelled') DEFAULT 'Pending'
@@ -82,8 +86,9 @@ CREATE TABLE `orders` (
 -- Đang đổ dữ liệu cho bảng `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `table_id`, `order_date`, `total_amount`, `status`) VALUES
-(1, 1, '0000-00-00 00:00:00', 200000, 'Pending');
+INSERT INTO `orders` (`order_id`, `order_date`, `total_amount`, `status`) VALUES
+(30, '2025-01-04 17:25:58', 50000, 'Pending'),
+(31, '2025-01-04 17:29:52', 0, 'Pending');
 
 -- --------------------------------------------------------
 
@@ -96,8 +101,8 @@ CREATE TABLE `order_detail` (
   `order_id` int(11) NOT NULL,
   `menu_item_id` int(11) NOT NULL,
   `quantity` int(11) NOT NULL,
-  `price` decimal(10,2) NOT NULL,
-  `total_price` decimal(10,2) GENERATED ALWAYS AS (`quantity` * `price`) STORED
+  `price` decimal(10,0) NOT NULL,
+  `total_price` decimal(10,0) GENERATED ALWAYS AS (`quantity` * `price`) STORED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -105,7 +110,48 @@ CREATE TABLE `order_detail` (
 --
 
 INSERT INTO `order_detail` (`order_detail_id`, `order_id`, `menu_item_id`, `quantity`, `price`) VALUES
-(2, 1, 1, 2, 200000.00);
+(20, 30, 2, 4, 10000),
+(21, 30, 4, 1, 10000);
+
+--
+-- Bẫy `order_detail`
+--
+DELIMITER $$
+CREATE TRIGGER `after_delete_order_detail` AFTER DELETE ON `order_detail` FOR EACH ROW BEGIN
+    UPDATE orders
+    SET total_amount = (
+        SELECT COALESCE(SUM(total_price), 0)
+        FROM order_detail
+        WHERE order_id = OLD.order_id
+    )
+    WHERE order_id = OLD.order_id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `after_insert_order_detail` AFTER INSERT ON `order_detail` FOR EACH ROW BEGIN
+    UPDATE orders
+    SET total_amount = (
+        SELECT SUM(total_price)
+        FROM order_detail
+        WHERE order_id = NEW.order_id
+    )
+    WHERE order_id = NEW.order_id;
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `after_update_order_detail` AFTER UPDATE ON `order_detail` FOR EACH ROW BEGIN
+    UPDATE orders
+    SET total_amount = (
+        SELECT SUM(total_price)
+        FROM order_detail
+        WHERE order_id = NEW.order_id
+    )
+    WHERE order_id = NEW.order_id;
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -139,20 +185,20 @@ CREATE TABLE `transaction` (
   `order_id` int(11) NOT NULL,
   `account_id` int(11) NOT NULL,
   `table_id` int(11) NOT NULL,
-  `payment_method` enum('Cash','Online') DEFAULT NULL,
+  `buffer_id` int(11) NOT NULL,
+  `count_people` int(11) NOT NULL DEFAULT 1,
+  `payment_method` enum('Chưa','TM','CK') DEFAULT 'Chưa',
   `payment_date` datetime DEFAULT current_timestamp(),
-  `amount` decimal(10,0) NOT NULL,
-  `list_menu` text NOT NULL
+  `amount` decimal(10,0) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `transaction`
 --
 
-INSERT INTO `transaction` (`transaction_id`, `order_id`, `account_id`, `table_id`, `payment_method`, `payment_date`, `amount`, `list_menu`) VALUES
-(1, 1, 1, 0, 'Cash', '0000-00-00 00:00:00', 600000, ''),
-(3, 1, 1, 0, 'Cash', '0000-00-00 00:00:00', 500000, ''),
-(4, 1, 1, 0, NULL, '0000-00-00 00:00:00', 500000, '');
+INSERT INTO `transaction` (`transaction_id`, `order_id`, `account_id`, `table_id`, `buffer_id`, `count_people`, `payment_method`, `payment_date`, `amount`) VALUES
+(6, 30, 1, 3, 2, 6, 'TM', NULL, 944000),
+(7, 31, 1, 3, 4, 2, 'Chưa', NULL, 298000);
 
 -- --------------------------------------------------------
 
@@ -196,8 +242,7 @@ ALTER TABLE `menu`
 -- Chỉ mục cho bảng `orders`
 --
 ALTER TABLE `orders`
-  ADD PRIMARY KEY (`order_id`),
-  ADD KEY `table_id` (`table_id`);
+  ADD PRIMARY KEY (`order_id`);
 
 --
 -- Chỉ mục cho bảng `order_detail`
@@ -236,25 +281,25 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT cho bảng `buffer`
 --
 ALTER TABLE `buffer`
-  MODIFY `buffer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `buffer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT cho bảng `menu`
 --
 ALTER TABLE `menu`
-  MODIFY `menu_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `menu_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT cho bảng `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT cho bảng `order_detail`
 --
 ALTER TABLE `order_detail`
-  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `order_detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT cho bảng `tables`
@@ -266,7 +311,7 @@ ALTER TABLE `tables`
 -- AUTO_INCREMENT cho bảng `transaction`
 --
 ALTER TABLE `transaction`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT cho bảng `user`
@@ -277,12 +322,6 @@ ALTER TABLE `user`
 --
 -- Các ràng buộc cho các bảng đã đổ
 --
-
---
--- Các ràng buộc cho bảng `orders`
---
-ALTER TABLE `orders`
-  ADD CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`table_id`) REFERENCES `tables` (`table_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Các ràng buộc cho bảng `order_detail`
