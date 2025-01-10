@@ -3,10 +3,6 @@ const db = require("../common/connect")
 
 const AuthModel = function () {
 }
-
-
-
-
 AuthModel.insert = function (data, result) {
 
     let sql_check_email = `SELECT user .* FROM user WHERE email ='${data.email}'`
