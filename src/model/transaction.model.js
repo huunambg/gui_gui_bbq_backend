@@ -15,6 +15,13 @@ TransactionModel.insert = function (data, result) {
 }
 
 
+TransactionModel.getAllByTable = function (tableId,result) {
+    let sql = `SELECT * FROM Transaction where table_id = '${tableId}'`
+    db.query(sql, function (err, res) {
+        result(err, res)
+    })
+}
+
 TransactionModel.getAll = function (result) {
     let sql = `SELECT * FROM Transaction`
     db.query(sql, function (err, res) {

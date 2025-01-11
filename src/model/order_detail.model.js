@@ -14,7 +14,12 @@ OrderDetailModel.insert = function (data, result) {
     })
 }
 
-
+OrderDetailModel.getAllByOrder = function (orderId,result) {
+    let sql = `SELECT * FROM order_detail where order_id = '${orderId}'`
+    db.query(sql, function (err, res) {
+        result(err, res)
+    })
+}
 OrderDetailModel.getAll = function (result) {
     let sql = `SELECT * FROM order_detail`
     db.query(sql, function (err, res) {

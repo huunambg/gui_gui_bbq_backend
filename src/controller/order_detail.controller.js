@@ -22,7 +22,16 @@ const getAllOrderDetail = function (req, res) {
         }
     })
 }
-
+const getAllOrderDetailByOrder = function (req, res) {
+    let id = req.params.id
+    OrderDetailModel.getAllByOrder(id,(err, result) => {
+        if (err) {
+            res.status(401).send({ message: "Get all OrderDetail Failure" })
+        } else {
+            res.send({ data: result, message: "Get all OrderDetail Success" })
+        }
+    })
+}
 const deleteOrderDetail = function (req, res) {
     let id = req.params.id
     OrderDetailModel.delete(id, (err, result) => {
@@ -56,7 +65,7 @@ const updateOrderDetail = function (req, res) {
 
 
 const OrderDetailController = {
-    addOrderDetail, getAllOrderDetail, deleteOrderDetail, updateOrderDetail,
+    addOrderDetail, getAllOrderDetail, deleteOrderDetail, updateOrderDetail,getAllOrderDetailByOrder
 }
 
 module.exports = OrderDetailController
