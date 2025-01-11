@@ -1,4 +1,5 @@
 const express = require("express")
+const path = require('path');
 const port = 3000;
 const app = express()
 var bodyParser = require('body-parser')
@@ -23,6 +24,8 @@ app.use("/public/api", MenuRouter)
 app.use("/public/api", OrderRouter)
 app.use("/public/api", OrderDetailRouter)
 app.use("/public/api", TransactionRouter)
+
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.listen(port, function () {
     console.log("server start on :", port)
 })

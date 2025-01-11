@@ -53,8 +53,6 @@ const updateTable = function (req, res) {
 
 
 
-
-
 const TableController = {
     addTable, getAllTable, deleteTable, updateTable,
 }
