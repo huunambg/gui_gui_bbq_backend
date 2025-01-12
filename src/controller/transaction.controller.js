@@ -22,6 +22,18 @@ const getAllTransaction = function (req, res) {
         }
     })
 }
+
+const getLastTransactionByTable = function (req, res) {
+    let id = req.params.id
+    TransactionModel.getAllByTable(id, (err, result) => {
+        if (err) {
+            res.status(401).send({ message: "Get Last Transaction By ID Failure" })
+        } else {
+            res.send({ data: result[result.length - 1], message: "Get Last Transaction Success" })
+        }
+    })
+}
+
 const getAllTransactionByDate = function (req, res) {
     let date = req.params.date
     TransactionModel.getAllByDate(date, (err, result) => {
@@ -90,7 +102,7 @@ const updateTransaction = function (req, res) {
 
 
 const TransactionController = {
-    addTransaction, getAllTransaction, deleteTransaction, updateTransaction, getAllTransactionByDate, getAllTransactionByDate, getAllTransactionByMonthAndYear,getAllTransactionByYear
+    addTransaction, getAllTransaction, deleteTransaction, updateTransaction, getAllTransactionByDate, getAllTransactionByDate, getAllTransactionByMonthAndYear, getAllTransactionByYear, getLastTransactionByTable
 }
 
 module.exports = TransactionController

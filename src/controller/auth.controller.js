@@ -1,6 +1,8 @@
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
+const AuthModel = require("../model/auth.model");
+const { log } = require('console');
 
 // Cấu hình thư mục lưu ảnh
 const uploadDir = './uploads/avatars';
@@ -15,7 +17,7 @@ const storage = multer.diskStorage({
     },
     filename: function (req, file, cb) {
         // Lấy user_id từ params hoặc body (tùy vào yêu cầu)
-        const userId = req.params.id || req.body.id;  
+        const userId = req.params.id || req.body.id;
         const fileExtension = path.extname(file.originalname);  // Lấy phần mở rộng của file (ví dụ: .jpg, .png)
         const fileName = `${userId}${fileExtension}`;
 
@@ -37,14 +39,17 @@ const updateAvatar = function (req, res) {
         if (!req.file) {
             return res.status(400).send({ message: 'No file uploaded' });
         }
-
         // Tạo URL công khai cho ảnh đã tải lên
         const filePath = `${req.protocol}://${req.get('host')}/uploads/avatars/${req.file.filename}`;
-
-        res.send({
-            message: 'Avatar updated successfully',
-            filePath: filePath  // Trả về URL công khai
-        });
+        console.log(filePath);
+        let id = req.params.id
+        AuthModel.updateAvatar(id, filePath, function (result) {
+            if (result != "Fail") {
+                res.send({ data: result, message: "Cập nhật thông tin thành công" })
+            } else {
+                res.send({ data: result, message: "Cập nhật thông tin thất bại" })
+            }
+        })
     } catch (error) {
         console.error('Error occurred while updating avatar:', error);
         res.status(500).send({
@@ -117,11 +122,13 @@ const updateUser = function (req, res) {
 
 }
 
+
+
 const AuthController = {
     register,
     login,
     updateUser,
-    getUserWithFilter, getAllUser, upload,updateAvatar
+    getUserWithFilter, getAllUser, upload, updateAvatar
 }
 
 module.exports = AuthController

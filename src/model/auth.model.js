@@ -82,5 +82,15 @@ AuthModel.update = function (user_id, user, result) {
         }
     })
 }
-
+AuthModel.updateAvatar = function (user_id,image, result) {
+    let sql = `UPDATE user SET image = '${image}' WHERE user_id = '${user_id}'`
+    db.query(sql, function (err, res) {
+        if (err) {
+            result("Fail")
+        }
+        else {
+            result(res)
+        }
+    })
+}
 module.exports = AuthModel

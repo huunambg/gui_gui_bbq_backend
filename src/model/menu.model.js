@@ -33,4 +33,14 @@ MenuModel.update = function (MenuId, data, result) {
     })
 }
 
+
+MenuModel.updateImage = function (MenuId, image, result) {
+    let sql = `UPDATE Menu SET image = '${image}' WHERE Menu_id = '${MenuId}' `
+    db.query(sql, function (err, res) {
+        result(err, res)
+    })
+}
+
+
+
 module.exports = MenuModel
