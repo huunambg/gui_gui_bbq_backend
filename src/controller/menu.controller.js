@@ -41,7 +41,7 @@ const updateImage = function (req, res) {
         // Tạo URL công khai cho ảnh đã tải lên
         const filePath = `${req.protocol}://${req.get('host')}/uploads/menu/${req.file.filename}`;
         console.log(filePath);
-        MenuModel.updateImage(req.params.id,filePath, (err, result) => {
+        MenuModel.updateImage(req.params.id, filePath, (err, result) => {
             if (err) {
                 console.log(err);
                 res.status(401).send({ message: "Update Menu Failure" })

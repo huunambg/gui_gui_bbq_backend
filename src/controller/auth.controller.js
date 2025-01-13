@@ -45,7 +45,7 @@ const updateAvatar = function (req, res) {
         let id = req.params.id
         AuthModel.updateAvatar(id, filePath, function (result) {
             if (result != "Fail") {
-                res.send({ data: result, message: "Cập nhật thông tin thành công" })
+                res.send({ data: result, message: "Cập nhật thông tin thành công", url: filePath })
             } else {
                 res.send({ data: result, message: "Cập nhật thông tin thất bại" })
             }
