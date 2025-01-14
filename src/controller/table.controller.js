@@ -1,14 +1,12 @@
 const TableModel = require("../model/table.model")
 
-
-
 const addTable = function (req, res) {
     let data = req.body
     TableModel.insert(data, (err, result) => {
         if (err) {
             res.status(401).send({ message: "Add Table failure" })
         } else {
-            res.send({ message: "Add Table success", data: data })
+            res.send({ message: "Add Table success", data: data, insert_id: result.insertId })
         }
     })
 }

@@ -5,8 +5,16 @@ const MenuModel = function () {
 }
 
 MenuModel.insert = function (data, result) {
+    console.log(data);
     let sql = "INSERT INTO Menu SET ?"
     db.query(sql, data, function (err, res) {
+        result(err, res)
+    })
+}
+
+MenuModel.getNextId = function (result) {
+    let sql = "SHOW TABLE STATUS LIKE 'menu'"
+    db.query(sql, function (err, res) {
         result(err, res)
     })
 }
