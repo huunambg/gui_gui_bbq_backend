@@ -61,7 +61,7 @@ AuthModel.getOne = function (user, result) {
 
 AuthModel.getAllUser = function (result) {
 
-    let sql = `SELECT user.user_id, user.user_name, user.email FROM user WHERE role = 'User'`
+    let sql = `SELECT * FROM user WHERE role = 'User'`
 
     db.query(sql, function (err, data) {
         console.log(err);
@@ -70,7 +70,17 @@ AuthModel.getAllUser = function (result) {
     })
 }
 
-
+AuthModel.delete = function (user_id, result) {
+    let sql = `DELETE FROM user WHERE user_id = '${user_id}'`
+    db.query(sql, function (err, data) {
+        if (err) {
+            result("Fail")
+        }
+        else {
+            result(data)
+        }
+    })
+}
 AuthModel.update = function (user_id, user, result) {
     let sql = `UPDATE user SET ?  WHERE user_id = '${user_id}'`
     db.query(sql, user, function (err, data) {
@@ -82,7 +92,7 @@ AuthModel.update = function (user_id, user, result) {
         }
     })
 }
-AuthModel.updateAvatar = function (user_id,image, result) {
+AuthModel.updateAvatar = function (user_id, image, result) {
     let sql = `UPDATE user SET image = '${image}' WHERE user_id = '${user_id}'`
     db.query(sql, function (err, res) {
         if (err) {

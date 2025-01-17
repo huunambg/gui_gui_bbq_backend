@@ -108,11 +108,22 @@ const getUserWithFilter = function (req, res) {
     })
 
 }
+const deleteUser = function (req, res) {
+    let userId = req.params.id
+    AuthModel.delete(userId, function (result) {
+        if (result != "Fail") {
+            res.send({ data: result, message: "Xóa thông tin thành công" })
+        } else {
+            res.send({ data: result, message: "Xóa thông tin thất bại" })
+        }
+    })
+
+}
 
 const updateUser = function (req, res) {
     let Auth = req.body
-    let Auth_id = req.params.Auth_id
-    AuthModel.update(Auth_id, Auth, function (result) {
+    let userId = req.body.user_id
+    AuthModel.update(userId, Auth, function (result) {
         if (result != "Fail") {
             res.send({ data: result, message: "Cập nhật thông tin thành công" })
         } else {
@@ -128,7 +139,7 @@ const AuthController = {
     register,
     login,
     updateUser,
-    getUserWithFilter, getAllUser, upload, updateAvatar
+    getUserWithFilter, getAllUser, upload, updateAvatar, deleteUser
 }
 
 module.exports = AuthController
